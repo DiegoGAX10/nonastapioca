@@ -8,14 +8,15 @@ export const formatCurrency = (amount) => {
 // Obtener icono por categoría
 export const getCategoryIcon = (categoryName) => {
     const icons = {
-        'Boba': '🧋',
-        'Milk Boba': '🥛',
-        'Shakes': '🥤',
-        'Sodas': '🫧',
-        'Snacks': '🍿',
-        'Postres': '🍨'
+        'Boba': '',
+        'Milk Boba': '',
+        'Shakes': '',
+        'Sodas': '',
+        'Snacks': '',
+        'Postres': '',
+        'Café y Té': ''
     };
-    return icons[categoryName] || '📦';
+    return icons[categoryName] || '';
 };
 
 // Generar UUID simple (para clientes)
@@ -48,21 +49,36 @@ export const calculateCartTotal = (cartItems) => {
     return cartItems.reduce((sum, item) => sum + item.subtotal, 0);
 };
 
-// Extraer categorías únicas de productos
+// Extraer categorías únicas de productos - CORREGIDO
 export const extractCategories = (productos) => {
-    const categoriesMap = new Map();
+    // Usar un objeto para evitar duplicados basado en el nombre de la categoría
+    const categoriesMap = {};
 
     productos.forEach(producto => {
-        if (!categoriesMap.has(producto.categoria_id)) {
-            categoriesMap.set(producto.categoria_id, {
-                id: producto.categoria_id,
-                nombre: producto.categoria,
-                icono: getCategoryIcon(producto.categoria)
-            });
+        // Usar el nombre de la categoría como key para evitar duplicados
+        const categoryName = producto.categoria;
+
+        if (!categoriesMap[categoryName]) {
+            categoriesMap[categoryName] = {
+                id: producto.categoria_id || categoryName, // Fallback al nombre si no hay ID
+                nombre: categoryName,
+                icono: getCategoryIcon(categoryName)
+            };
         }
     });
 
-    return Array.from(categoriesMap.values()).sort((a, b) => a.id - b.id);
+    // Convertir objeto a array y ordenar
+    const categories = Object.values(categoriesMap);
+
+    console.log('Categorías extraídas:', categories);
+
+    return categories.sort((a, b) => {
+        // Intentar ordenar por ID si existe, sino alfabéticamente
+        if (typeof a.id === 'number' && typeof b.id === 'number') {
+            return a.id - b.id;
+        }
+        return a.nombre.localeCompare(b.nombre);
+    });
 };
 
 // Validar datos de venta

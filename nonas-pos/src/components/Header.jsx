@@ -6,46 +6,59 @@ import { Ionicons } from '@expo/vector-icons';
 const Header = ({ currentView, onViewChange }) => {
     return (
         <View style={styles.header}>
-            <View style={styles.headerContent}>
-                <View style={styles.logo}>
-                    <View style={styles.logoIcon}>
-                        <Text style={styles.logoEmoji}>🧋</Text>
-                    </View>
-                    <View>
-                        <Text style={styles.title}>Nonas Tapioca</Text>
-                        <Text style={styles.subtitle}>Sistema de Punto de Venta</Text>
-                    </View>
-                </View>
+            <View style={styles.left}>
+                <TouchableOpacity style={styles.backButton}>
+                    <Ionicons name="chevron-back" size={24} color="#1f2937" />
+                    <Text style={styles.backText}></Text>
+                </TouchableOpacity>
+            </View>
 
-                <View style={styles.nav}>
+            <View style={styles.center}>
+                <View style={styles.tabs}>
                     <TouchableOpacity
-                        style={[styles.navButton, currentView === 'pos' && styles.navButtonActive]}
+                        style={[styles.tab, currentView === 'pos' && styles.tabActive]}
                         onPress={() => onViewChange('pos')}
                     >
                         <Ionicons
-                            name="home"
+                            name="receipt"
                             size={20}
-                            color={currentView === 'pos' ? '#fff' : '#374151'}
+                            color={currentView === 'pos' ? '#5b79f5' : '#6b7280'}
                         />
-                        <Text style={[styles.navButtonText, currentView === 'pos' && styles.navButtonTextActive]}>
-                            Venta
+                        <Text style={[styles.tabText, currentView === 'pos' && styles.tabTextActive]}>
+                            Recibo
                         </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.navButton, currentView === 'ventas' && styles.navButtonActive]}
+                        style={[styles.tab, currentView === 'ventas' && styles.tabActive]}
                         onPress={() => onViewChange('ventas')}
                     >
                         <Ionicons
                             name="bar-chart"
                             size={20}
-                            color={currentView === 'ventas' ? '#fff' : '#374151'}
+                            color={currentView === 'ventas' ? '#5b79f5' : '#6b7280'}
                         />
-                        <Text style={[styles.navButtonText, currentView === 'ventas' && styles.navButtonTextActive]}>
+                        <Text style={[styles.tabText, currentView === 'ventas' && styles.tabTextActive]}>
                             Ventas
                         </Text>
                     </TouchableOpacity>
                 </View>
+            </View>
+
+            <View style={styles.right}>
+                <TouchableOpacity style={styles.iconButton}>
+                    <Ionicons name="notifications-outline" size={24} color="#1f2937" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton}>
+                    <Ionicons name="menu" size={24} color="#1f2937" />
+                </TouchableOpacity>
+                <View style={styles.userInfo}>
+                    <Text style={styles.userName}>Vale</Text>
+                    <View style={styles.lockIcon}>
+                        <Ionicons name="lock-closed" size={16} color="#6b7280" />
+                    </View>
+                </View>
+                <View style={styles.statusIndicator} />
             </View>
         </View>
     );
@@ -53,71 +66,100 @@ const Header = ({ currentView, onViewChange }) => {
 
 const styles = StyleSheet.create({
     header: {
+        height: 60,
         backgroundColor: '#fff',
-        borderBottomWidth: 4,
-        borderBottomColor: '#D4D8C9',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-    headerContent: {
         flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-between',
-        alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 16,
-        paddingTop: 50, // Para iOS status bar
+        borderBottomWidth: 1,
+        borderBottomColor: '#e5e7eb',
     },
-    logo: {
+    left: {
+        flex: 1,
+    },
+    backButton: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 4,
+    },
+    backText: {
+        fontSize: 16,
+        color: '#1f2937',
+    },
+    center: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    tabs: {
+        flexDirection: 'row',
+        backgroundColor: '#f3f4f6',
+        borderRadius: 10,
+        padding: 4,
+        gap: 4,
+    },
+    tab: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    tabActive: {
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    tabText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#6b7280',
+    },
+    tabTextActive: {
+        color: '#5b79f5',
+    },
+    right: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
         gap: 12,
     },
-    logoIcon: {
-        width: 48,
-        height: 48,
-        backgroundColor: '#D4D8C9',
-        borderRadius: 12,
+    iconButton: {
+        width: 40,
+        height: 40,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    logoEmoji: {
-        fontSize: 24,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#D4D8C9',
-    },
-    subtitle: {
-        fontSize: 12,
-        color: '#6b7280',
-    },
-    nav: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    navButton: {
+    userInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 12,
+        gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         backgroundColor: '#f3f4f6',
+        borderRadius: 8,
     },
-    navButtonActive: {
-        backgroundColor: '#D4D8C9',
-    },
-    navButtonText: {
+    userName: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#374151',
+        color: '#1f2937',
     },
-    navButtonTextActive: {
-        color: '#fff',
+    lockIcon: {
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    statusIndicator: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#22c55e',
     },
 });
 

@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     totalAmount: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#D4D8C9',
+        color: '#9333ea',
     },
     buttons: {
         gap: 12,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#3b82f6',
     },
     transferencia: {
-        backgroundColor: '#D4D8C9',
+        backgroundColor: '#9333ea',
     },
     wallet: {
         backgroundColor: '#ec4899',
