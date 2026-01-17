@@ -57,7 +57,9 @@ const POSScreen = ({ productos, categorias, extras }) => {
                 cliente_uuid: clienteActual?.uuid || null
             };
 
-            console.log('📦 Datos de venta preparados:', ventaData);
+            console.log(' Datos de venta preparados:', ventaData);
+            console.log(' Cliente actual:', clienteActual);
+            console.log(' Datos de venta preparados:', ventaData);
 
             const resultado = await crearVenta(ventaData);
 

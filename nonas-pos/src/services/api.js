@@ -69,7 +69,8 @@ export const crearVenta = async (ventaData) => {
     subtotal: total,
     metodo_pago: ventaData.metodo_pago,
     empleado: ventaData.empleado || 'Cajero',
-    notas: ventaData.notas || null
+    notas: ventaData.notas || null,
+    cliente_uuid: ventaData.cliente_uuid || null
   };
 
   console.log(' Enviando venta:', JSON.stringify(payload, null, 2));
