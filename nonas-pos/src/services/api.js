@@ -5,7 +5,7 @@
 // - Mac/Linux: ifconfig | grep inet
 // - Debe ser la misma red que tu dispositivo móvil/emulador
 
-const API_URL = '';
+const API_URL = 'http://192.168.0.103:3000/api';
 
 // Helper para manejar respuestas
 const handleResponse = async (response) => {

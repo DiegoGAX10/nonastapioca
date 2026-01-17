@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ProductModal from '../components/ProductModal';
 import PaymentModal from '../components/PaymentModal';
 import SuccessModal from '../components/SuccessModal';
+import CustomerIdentificationModal from "../components/CustomerIdentificationModal";
 import { useCart } from '../context/CartContext';
 import { crearVenta } from '../services/api';
 import { formatCurrency } from '../utils/helpers';
@@ -16,6 +17,7 @@ const POSScreen = ({ productos, categorias, extras }) => {
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [saleSuccess, setSaleSuccess] = useState(null);
+    const [showCustomerModal, setShowCustomerModal] = useState(false);
 
     const productosFiltrados = productos.filter(p => {
         const matchSearch = busqueda === '' ||
@@ -167,7 +169,7 @@ const POSScreen = ({ productos, categorias, extras }) => {
 
                     <TouchableOpacity
                         style={[styles.payButton, cart.length === 0 && styles.payButtonDisabled]}
-                        onPress={() => setShowPaymentModal(true)}
+                        onPress={() => setShowCustomerModal(true)}
                         disabled={cart.length === 0}
                     >
                         <Text style={styles.payButtonText}>Pagar</Text>
@@ -281,6 +283,15 @@ const POSScreen = ({ productos, categorias, extras }) => {
                 visible={!!saleSuccess}
                 saleData={saleSuccess}
                 onClose={() => setSaleSuccess(null)}
+            />
+
+            <CustomerIdentificationModal
+                visible={showCustomerModal}
+                onClose={() => setShowCustomerModal(false)}
+                onConfirm={(cliente) =>{
+
+                }}
+
             />
         </View>
     );
