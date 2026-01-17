@@ -9,9 +9,11 @@ import CustomerIdentificationModal from "../components/CustomerIdentificationMod
 import { useCart } from '../context/CartContext';
 import { crearVenta } from '../services/api';
 import { formatCurrency } from '../utils/helpers';
+import PointsRedemptionModal from '../components/PointsRedemptionModal';
+import { canjearPuntos } from '../services/api';
 
 const POSScreen = ({ productos, categorias, extras }) => {
-    const { cart, removeFromCart, updateQuantity, getTotal, clearCart } = useCart();
+    const { cart, removeFromCart, updateQuantity, getTotal, clearCart, addToCart } = useCart();
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
     const [busqueda, setBusqueda] = useState('');
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -19,6 +21,8 @@ const POSScreen = ({ productos, categorias, extras }) => {
     const [saleSuccess, setSaleSuccess] = useState(null);
     const [showCustomerModal, setShowCustomerModal] = useState(false);
     const [clienteActual, setClienteActual] = useState(null);
+    const [showPointsModal, setShowPointsModal] = useState(false);
+
 
     const productosFiltrados = productos.filter(p => {
         const matchSearch = busqueda === '' ||
@@ -84,6 +88,64 @@ const POSScreen = ({ productos, categorias, extras }) => {
     const getTamanoLabel = (tamano) => {
         const labels = { 'chico': 'Ch', 'grande': 'Gr', 'unico': '' };
         return labels[tamano] || tamano;
+    };
+
+    const handleRedeemPoints = async (recompensa, cliente) => {
+        try {
+            console.log(' Canjeando recompensa:', recompensa);
+
+            // Mostrar selector de producto
+            // Por ahora, tomamos el primer producto disponible
+            const productoSeleccionado = recompensa.productos[0];
+
+            if (!productoSeleccionado) {
+                alert('No hay productos disponibles para esta recompensa');
+                return;
+            }
+
+            // Descontar puntos del cliente
+            const resultado = await canjearPuntos(cliente.id, recompensa.puntosNecesarios);
+
+            console.log(' Puntos canjeados:', resultado);
+
+            // Agregar producto al carrito con precio $0
+            const productoGratis = {
+                ...productoSeleccionado,
+                precio_unico: 0,
+                precio_chico: 0,
+                precio_grande: 0,
+                es_canje: true // Marcar como canje
+            };
+
+            // Determinar tamaño según el precio de la recompensa
+            let tamanoSeleccionado = 'unico';
+            if (productoSeleccionado.tiene_tamanos) {
+                if (productoSeleccionado.precio_chico == recompensa.valor) {
+                    tamanoSeleccionado = 'chico';
+                } else if (productoSeleccionado.precio_grande == recompensa.valor) {
+                    tamanoSeleccionado = 'grande';
+                }
+            }
+
+            // Agregar al carrito
+            addToCart(productoGratis, tamanoSeleccionado, [], 1);
+
+            // Actualizar puntos del cliente
+            const clienteActualizado = {
+                ...cliente,
+                puntos: resultado.puntos_restantes
+            };
+            setClienteActual(clienteActualizado);
+
+            alert(`¡${recompensa.puntosNecesarios} puntos canjeados! ${productoSeleccionado.nombre} agregado gratis al carrito`);
+
+            setShowPointsModal(false);
+            setShowPaymentModal(true);
+
+        } catch (error) {
+            console.error(' Error al canjear puntos:', error);
+            alert('Error al canjear puntos: ' + error.message);
+        }
     };
 
     return (
@@ -298,12 +360,31 @@ const POSScreen = ({ productos, categorias, extras }) => {
                     console.log('Cliente identificado:', cliente);
                     setClienteActual(cliente);
                     setShowCustomerModal(false);
-                    setShowPaymentModal(true);
+                    if (cliente.puntos >= 45){
+                        setShowPointsModal(true);
+                    } else {
+                        setShowPaymentModal(true);
+                    }
                 }}
                 onSkip={() => {
                     console.log('Cliente saltó el registro');
                     setClienteActual(null);
                     setShowCustomerModal(false);
+                    setShowPaymentModal(true);
+                }}
+            />
+
+            <PointsRedemptionModal
+                visible={showPointsModal}
+                cliente={clienteActual}
+                productos={productos}
+                onRedeem={handleRedeemPoints}
+                onSkip={() => {
+                    setShowPointsModal(false);
+                    setShowPaymentModal(true);
+                }}
+                onClose={() => {
+                    setShowPointsModal(false);
                     setShowPaymentModal(true);
                 }}
             />

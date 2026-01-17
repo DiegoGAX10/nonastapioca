@@ -1,10 +1,3 @@
-// src/services/api.js
-// IMPORTANTE: Cambia esta IP por la IP de tu computadora
-// Para encontrarla:
-// - Windows: ipconfig (busca IPv4)
-// - Mac/Linux: ifconfig | grep inet
-// - Debe ser la misma red que tu dispositivo móvil/emulador
-
 const API_URL = 'http://192.168.0.103:3000/api';
 
 // Helper para manejar respuestas
@@ -133,6 +126,23 @@ export const getClienteByTelefono = async (telefono) => {
   return handleResponse(response);
 };
 
+// Canjear puntos del cliente
+export const canjearPuntos = async (clienteId, puntosADescontar) => {
+  try {
+    const response = await fetch(`${API_URL}/clientes/${clienteId}/canjear-puntos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        puntos_a_descontar: puntosADescontar
+      })
+    });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error al canjear puntos:', error);
+    throw error;
+  }
+};
+
 // Test de conexión
 export const testConnection = async () => {
   try {
@@ -145,4 +155,5 @@ export const testConnection = async () => {
     console.error('Error de conexión:', error);
     return false;
   }
+
 };
