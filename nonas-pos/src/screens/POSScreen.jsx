@@ -18,6 +18,7 @@ const POSScreen = ({ productos, categorias, extras }) => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [saleSuccess, setSaleSuccess] = useState(null);
     const [showCustomerModal, setShowCustomerModal] = useState(false);
+    const [clienteActual, setClienteActual] = useState(null);
 
     const productosFiltrados = productos.filter(p => {
         const matchSearch = busqueda === '' ||
@@ -52,7 +53,8 @@ const POSScreen = ({ productos, categorias, extras }) => {
                     }))
                 })),
                 metodo_pago: metodoPago,
-                empleado: 'Cajero iPad'
+                empleado: 'Cajero iPad',
+                cliente_uuid: clienteActual?.uuid || null
             };
 
             console.log('📦 Datos de venta preparados:', ventaData);
@@ -66,6 +68,8 @@ const POSScreen = ({ productos, categorias, extras }) => {
                 total: resultado.total,
                 metodoPago
             });
+
+            setClienteActual(null);
 
             clearCart();
             setShowPaymentModal(false);
@@ -288,10 +292,18 @@ const POSScreen = ({ productos, categorias, extras }) => {
             <CustomerIdentificationModal
                 visible={showCustomerModal}
                 onClose={() => setShowCustomerModal(false)}
-                onConfirm={(cliente) =>{
-
+                onCustomerIdentified={(cliente) => {
+                    console.log('Cliente identificado:', cliente);
+                    setClienteActual(cliente);
+                    setShowCustomerModal(false);
+                    setShowPaymentModal(true);
                 }}
-
+                onSkip={() => {
+                    console.log('Cliente saltó el registro');
+                    setClienteActual(null);
+                    setShowCustomerModal(false);
+                    setShowPaymentModal(true);
+                }}
             />
         </View>
     );
