@@ -20,10 +20,11 @@ const PointsRedemptionModal = ({ visible, cliente, productos, onRedeem, onSkip, 
 
         // Definir rangos de puntos y sus productos disponibles
         const rangos = [
-            { puntos: 45, valor: 45, nombre: 'Soda Italiana' },
+            { puntos: 45, valor: 45, nombre: 'Producto de $45' },
             { puntos: 55, valor: 55, nombre: 'Producto de $55' },
             { puntos: 65, valor: 65, nombre: 'Producto de $65' },
-            { puntos: 75, valor: 75, nombre: 'Producto de $75' }
+            { puntos: 75, valor: 75, nombre: 'Producto de $75' },
+            {puntos: 85, valor: 75, nombre: 'Producto de $85'}
         ];
 
         rangos.forEach(rango => {
@@ -52,10 +53,11 @@ const PointsRedemptionModal = ({ visible, cliente, productos, onRedeem, onSkip, 
 
     const getRewardIcon = (puntos) => {
         const icons = {
-            45: '🥤',
-            55: '🧋',
-            65: '🍹',
-            75: '🎁'
+            45: '',
+            55: '',
+            65: '',
+            75: '',
+            85:''
         };
         return icons[puntos] || '🎁';
     };

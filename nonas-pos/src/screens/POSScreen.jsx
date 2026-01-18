@@ -242,6 +242,13 @@ const POSScreen = ({ productos, categorias, extras }) => {
                     >
                         <Text style={styles.payButtonText}>Pagar</Text>
                     </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.pointsButton, cart.length === 0]}
+                        onPress={() => setShowCustomerModal(true)}
+                        >
+                        <Text style={styles.payButtonText}>Canjear Puntos</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -546,6 +553,12 @@ const styles = StyleSheet.create({
     },
     payButton: {
         backgroundColor: '#22c55e',
+        paddingVertical: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    pointsButton:{
+        backgroundColor: '#3b82f6',
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',

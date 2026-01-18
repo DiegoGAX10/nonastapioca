@@ -7,10 +7,6 @@ const Header = ({ currentView, onViewChange }) => {
     return (
         <View style={styles.header}>
             <View style={styles.left}>
-                <TouchableOpacity style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={24} color="#1f2937" />
-                    <Text style={styles.backText}></Text>
-                </TouchableOpacity>
             </View>
 
             <View style={styles.center}>
@@ -47,15 +43,15 @@ const Header = ({ currentView, onViewChange }) => {
 
             <View style={styles.right}>
                 <TouchableOpacity style={styles.iconButton}>
-                    <Ionicons name="notifications-outline" size={24} color="#1f2937" />
+                    <Ionicons name="" size={24} color="#1f2937" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.iconButton}>
-                    <Ionicons name="menu" size={24} color="#1f2937" />
+                    <Ionicons name="" size={24} color="#1f2937" />
                 </TouchableOpacity>
                 <View style={styles.userInfo}>
-                    <Text style={styles.userName}>Vale</Text>
+                    <Text style={styles.userName}></Text>
                     <View style={styles.lockIcon}>
-                        <Ionicons name="lock-closed" size={16} color="#6b7280" />
+                        <Ionicons name="" size={16} color="#6b7280" />
                     </View>
                 </View>
                 <View style={styles.statusIndicator} />
