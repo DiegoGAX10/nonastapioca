@@ -77,6 +77,9 @@ const PointsRedemptionModal = ({ visible, cliente, productos, onRedeem, onSkip, 
     if (!cliente) return null;
 
     const puntosActuales = cliente.puntos || 0;
+    const PUNTOS_MINIMOS = 45;
+    const puntosFaltantes = PUNTOS_MINIMOS - puntosActuales;
+    const noAlcanza = puntosActuales < PUNTOS_MINIMOS;
     const tieneRecompensas = recompensasDisponibles.length > 0;
 
     return (
@@ -113,7 +116,8 @@ const PointsRedemptionModal = ({ visible, cliente, productos, onRedeem, onSkip, 
                                     Sigue acumulando puntos
                                 </Text>
                                 <Text style={styles.noRewardsSubtitle}>
-                                    Necesitas al menos 45 puntos para canjear recompensas
+                                    Tienes {puntosActuales} puntos.
+                                    {`\n`}Te faltan {puntosFaltantes} puntos para poder canjear.
                                 </Text>
                                 <View style={styles.progressBar}>
                                     <View

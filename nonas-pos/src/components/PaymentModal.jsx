@@ -85,7 +85,7 @@ const PaymentModal = ({ visible, onClose, onProcessPayment }) => {
                             )}
                         </TouchableOpacity>
 
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             style={[styles.paymentButton, styles.wallet]}
                             onPress={() => handlePayment('wallet')}
                             disabled={processing}
@@ -98,7 +98,7 @@ const PaymentModal = ({ visible, onClose, onProcessPayment }) => {
                                     <Text style={styles.buttonText}>Wallet Digital</Text>
                                 </>
                             )}
-                        </TouchableOpacity>
+                        </TouchableOpacity>*/}
                     </View>
                 </View>
             </View>

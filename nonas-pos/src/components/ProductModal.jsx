@@ -1,5 +1,5 @@
 // src/components/ProductModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
@@ -10,14 +10,120 @@ const ProductModal = ({ visible, producto, extras, onClose }) => {
     const [tamano, setTamano] = useState(producto?.tiene_tamanos ? 'chico' : 'unico');
     const [extrasSeleccionados, setExtrasSeleccionados] = useState([]);
     const [cantidad, setCantidad] = useState(1);
+    const [extrasAgrupados, setExtrasAgrupados] = useState({});
 
-    const toggleExtra = (extra) => {
+    useEffect(() => {
+        if (producto && extras) {
+            const filtrados = filtrarExtrasPorProducto(producto, extras);
+            setExtrasAgrupados(filtrados);
+            setExtrasSeleccionados([]);
+        }
+    }, [producto, extras]);
+
+    const filtrarExtrasPorProducto = (producto, todosLosExtras) => {
+        if (!producto) return {};
+
+        const categoria = producto.categoria;
+        const codigo = producto.codigo;
+
+        // Filtrar extras según categoría
+        const extrasAplicables = todosLosExtras.filter(extra => {
+            if (!extra.categoria_aplicable) return false;
+            return extra.categoria_aplicable.split(',').some(cat => cat.trim() === categoria);
+        });
+
+        // Agrupar extras según el producto
+        const grupos = {};
+
+        // Reglas específicas por categoría
+        if (categoria === 'Boba' || categoria === 'Milk Boba' || categoria === 'Shakes') {
+            // Bebidas: Leche, Tapioca, Jelly
+            grupos['Tipo de Leche'] = extrasAplicables.filter(e => e.nombre === 'Leche Deslactosada');
+            grupos['Adicionales'] = extrasAplicables.filter(e =>
+                e.nombre === 'Tapioca Extra' || e.nombre === 'Jelly de Café Extra'
+            );
+        }
+        else if (categoria === 'Sodas') {
+            // Sodas: Sin extras
+            return {};
+        }
+        else if (categoria === 'Snacks') {
+            // Snacks: Solo papas para Tosti y Dori
+            if (codigo === 'SN001' || codigo === 'SN002') {
+                grupos['Elige tus papas'] = extrasAplicables.filter(e => e.subcategoria === 'papas');
+            }
+            // Maruchan: papas
+            if (codigo === 'SN003') {
+                grupos['Elige tus papas'] = extrasAplicables.filter(e => e.subcategoria === 'papas');
+            }
+        }
+        else if (categoria === 'Postres') {
+            if (codigo === 'P001') {
+                // Fresas con Crema: todos los toppings
+                grupos['Toppings'] = extrasAplicables.filter(e => e.subcategoria === 'fresas');
+            }
+            else if (codigo === 'P002') {
+                // Bubble Waffle completo
+                grupos['Bola de Nieve'] = extrasAplicables.filter(e => e.subcategoria === 'waffle_nieve');
+                grupos['Toppings (Max 2)'] = extrasAplicables.filter(e => e.subcategoria === 'waffle_topping');
+                grupos['Base'] = extrasAplicables.filter(e => e.subcategoria === 'waffle_base');
+            }
+            else if (codigo === 'P003') {
+                // Bubble Waffle Sencillo: solo base
+                grupos['Base'] = extrasAplicables.filter(e =>
+                    e.subcategoria === 'waffle_base' ||
+                    (e.subcategoria === 'fresas' && (e.nombre === 'Nutella' || e.nombre === 'Cajeta'))
+                );
+            }
+        }
+
+        return grupos;
+    };
+
+    const toggleExtra = (extra, grupo) => {
         setExtrasSeleccionados(prev => {
             const exists = prev.find(e => e.id === extra.id);
-            if (exists) {
-                return prev.filter(e => e.id !== extra.id);
-            } else {
+
+            // Validaciones especiales
+            if (!exists) {
+                // Waffle: Max 2 toppings
+                if (grupo === 'Toppings (Max 2)') {
+                    const toppingActuales = prev.filter(e =>
+                        extrasAgrupados['Toppings (Max 2)']?.some(t => t.id === e.id)
+                    );
+                    if (toppingActuales.length >= 2) {
+                        alert('Máximo 2 toppings permitidos');
+                        return prev;
+                    }
+                }
+
+                // Papas: Solo una opción
+                if (grupo === 'Elige tus papas') {
+                    const nuevos = prev.filter(e =>
+                        !extrasAgrupados['Elige tus papas']?.some(p => p.id === e.id)
+                    );
+                    return [...nuevos, extra];
+                }
+
+                // Bola de nieve: Solo una
+                if (grupo === 'Bola de Nieve') {
+                    const nuevos = prev.filter(e =>
+                        !extrasAgrupados['Bola de Nieve']?.some(b => b.id === e.id)
+                    );
+                    return [...nuevos, extra];
+                }
+
+                // Base: Solo una
+                if (grupo === 'Base') {
+                    const nuevos = prev.filter(e =>
+                        !extrasAgrupados['Base']?.some(b => b.id === e.id)
+                    );
+                    return [...nuevos, extra];
+                }
+
                 return [...prev, extra];
+            } else {
+                return prev.filter(e => e.id !== extra.id);
             }
         });
     };
@@ -31,6 +137,8 @@ const ProductModal = ({ visible, producto, extras, onClose }) => {
     };
 
     if (!producto) return null;
+
+    const tieneExtras = Object.keys(extrasAgrupados).length > 0;
 
     return (
         <Modal
@@ -97,29 +205,36 @@ const ProductModal = ({ visible, producto, extras, onClose }) => {
                             </View>
                         )}
 
-                        {/* Extras */}
-                        {extras && extras.length > 0 && (
+                        {/* Extras Agrupados */}
+                        {tieneExtras && (
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Extras:</Text>
-                                <View style={styles.extrasList}>
-                                    {extras.map(extra => (
-                                        <TouchableOpacity
-                                            key={extra.id}
-                                            style={styles.extraItem}
-                                            onPress={() => toggleExtra(extra)}
-                                        >
-                                            <View style={styles.checkbox}>
-                                                {extrasSeleccionados.some(e => e.id === extra.id) && (
-                                                    <Ionicons name="checkmark" size={16} color="#D4D8C9" />
-                                                )}
+                                <Text style={styles.sectionTitle}>Personaliza tu orden:</Text>
+                                {Object.entries(extrasAgrupados).map(([grupo, extrasGrupo]) => (
+                                    extrasGrupo.length > 0 && (
+                                        <View key={grupo} style={styles.extraGroup}>
+                                            <Text style={styles.groupTitle}>{grupo}</Text>
+                                            <View style={styles.extrasList}>
+                                                {extrasGrupo.map(extra => (
+                                                    <TouchableOpacity
+                                                        key={extra.id}
+                                                        style={styles.extraItem}
+                                                        onPress={() => toggleExtra(extra, grupo)}
+                                                    >
+                                                        <View style={styles.checkbox}>
+                                                            {extrasSeleccionados.some(e => e.id === extra.id) && (
+                                                                <Ionicons name="checkmark" size={16} color="#10b981" />
+                                                            )}
+                                                        </View>
+                                                        <Text style={styles.extraName}>{extra.nombre}</Text>
+                                                        {extra.precio > 0 && (
+                                                            <Text style={styles.extraPrice}>+{formatCurrency(extra.precio)}</Text>
+                                                        )}
+                                                    </TouchableOpacity>
+                                                ))}
                                             </View>
-                                            <Text style={styles.extraName}>{extra.nombre}</Text>
-                                            {extra.precio > 0 && (
-                                                <Text style={styles.extraPrice}>+{formatCurrency(extra.precio)}</Text>
-                                            )}
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
+                                        </View>
+                                    )
+                                ))}
                             </View>
                         )}
 
@@ -219,8 +334,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     sizeButtonActive: {
-        borderColor: '#D4D8C9',
-        backgroundColor: '#f3e8ff',
+        borderColor: '#10b981',
+        backgroundColor: '#d1fae5',
     },
     sizeLabel: {
         fontSize: 14,
@@ -229,22 +344,22 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     sizeLabelActive: {
-        color: '#D4D8C9',
+        color: '#10b981',
     },
     sizePrice: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#D4D8C9',
+        color: '#6b7280',
     },
     sizePriceActive: {
-        color: '#D4D8C9',
+        color: '#10b981',
     },
     singlePrice: {
         padding: 16,
         borderRadius: 12,
-        backgroundColor: '#f3e8ff',
+        backgroundColor: '#d1fae5',
         borderWidth: 2,
-        borderColor: '#D4D8C9',
+        borderColor: '#10b981',
         alignItems: 'center',
     },
     singlePriceLabel: {
@@ -256,7 +371,17 @@ const styles = StyleSheet.create({
     singlePriceValue: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#D4D8C9',
+        color: '#10b981',
+    },
+    extraGroup: {
+        marginBottom: 16,
+    },
+    groupTitle: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#10b981',
+        marginBottom: 8,
+        textTransform: 'uppercase',
     },
     extrasList: {
         gap: 8,
@@ -274,7 +399,7 @@ const styles = StyleSheet.create({
         height: 20,
         borderRadius: 4,
         borderWidth: 2,
-        borderColor: '#D4D8C9',
+        borderColor: '#10b981',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -286,7 +411,7 @@ const styles = StyleSheet.create({
     extraPrice: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#D4D8C9',
+        color: '#10b981',
     },
     quantityControl: {
         flexDirection: 'row',
@@ -311,7 +436,7 @@ const styles = StyleSheet.create({
     addButton: {
         margin: 20,
         marginTop: 0,
-        backgroundColor: '#D4D8C9',
+        backgroundColor: '#10b981',
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',

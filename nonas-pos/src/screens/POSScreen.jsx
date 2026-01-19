@@ -1,6 +1,6 @@
 // src/screens/POSScreen.jsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ProductModal from '../components/ProductModal';
 import PaymentModal from '../components/PaymentModal';
@@ -22,6 +22,13 @@ const POSScreen = ({ productos, categorias, extras }) => {
     const [showCustomerModal, setShowCustomerModal] = useState(false);
     const [clienteActual, setClienteActual] = useState(null);
     const [showPointsModal, setShowPointsModal] = useState(false);
+    const [showNoPointsModal, setShowNoPointsModal] = useState(false);
+    const [noPointsInfo, setNoPointsInfo] = useState(null);
+    const [pagoDesdeCanje, setPagoDesdeCanje] = useState(false);
+    const [modoCanje, setModoCanje] = useState(false);
+
+
+
 
 
     const productosFiltrados = productos.filter(p => {
@@ -92,6 +99,8 @@ const POSScreen = ({ productos, categorias, extras }) => {
 
     const handleRedeemPoints = async (recompensa, cliente) => {
         try {
+
+
             console.log(' Canjeando recompensa:', recompensa);
 
             // Mostrar selector de producto
@@ -237,18 +246,28 @@ const POSScreen = ({ productos, categorias, extras }) => {
 
                     <TouchableOpacity
                         style={[styles.payButton, cart.length === 0 && styles.payButtonDisabled]}
-                        onPress={() => setShowCustomerModal(true)}
+                        onPress={() => {
+                            setModoCanje(false);          // ⛔ NO canje
+                            setShowCustomerModal(true);   // solo identificar cliente
+                        }}
                         disabled={cart.length === 0}
                     >
                         <Text style={styles.payButtonText}>Pagar</Text>
                     </TouchableOpacity>
 
+
+
                     <TouchableOpacity
                         style={[styles.pointsButton, cart.length === 0]}
-                        onPress={() => setShowCustomerModal(true)}
-                        >
+                        onPress={() => {
+                            setModoCanje(true);
+                            setShowCustomerModal(true);
+                        }}
+                    >
                         <Text style={styles.payButtonText}>Canjear Puntos</Text>
                     </TouchableOpacity>
+
+
                 </View>
             </View>
 
@@ -256,7 +275,7 @@ const POSScreen = ({ productos, categorias, extras }) => {
             <View style={styles.productsPanel}>
                 {/* Búsqueda y Filtros */}
                 <View style={styles.topBar}>
-                    <View style={styles.searchContainer}>
+                    {/*  <View style={styles.searchContainer}>
                         <Ionicons name="search" size={20} color="#9ca3af" />
                         <TextInput
                             style={styles.searchInput}
@@ -265,7 +284,7 @@ const POSScreen = ({ productos, categorias, extras }) => {
                             onChangeText={setBusqueda}
                             placeholderTextColor="#9ca3af"
                         />
-                    </View>
+                    </View>*/}
                 </View>
 
                 {/* Categorías */}
@@ -316,7 +335,7 @@ const POSScreen = ({ productos, categorias, extras }) => {
                                         />
                                     ) : (
                                         <View style={[styles.productImage, styles.productImagePlaceholder]}>
-                                            <Text style={styles.productEmoji}>🧋</Text>
+                                            <Text style={styles.productEmoji}></Text>
                                         </View>
                                     )}
                                 </View>
@@ -338,6 +357,7 @@ const POSScreen = ({ productos, categorias, extras }) => {
                         ))}
                     </View>
                 </ScrollView>
+
             </View>
 
             {/* Modales */}
@@ -364,15 +384,41 @@ const POSScreen = ({ productos, categorias, extras }) => {
                 visible={showCustomerModal}
                 onClose={() => setShowCustomerModal(false)}
                 onCustomerIdentified={(cliente) => {
-                    console.log('Cliente identificado:', cliente);
                     setClienteActual(cliente);
                     setShowCustomerModal(false);
-                    if (cliente.puntos >= 45){
+
+                    const puntos = cliente.puntos || 0;
+                    const MIN_PUNTOS = 45;
+
+                    // 🔵 SI VIENE DE CANJEAR → FORZAR CANJE
+                    if (modoCanje) {
+                        if (puntos >= MIN_PUNTOS) {
+                            setShowPointsModal(true);
+                        } else {
+                            setNoPointsInfo({
+                                nombre: cliente.nombre,
+                                puntos,
+                                faltan: MIN_PUNTOS - puntos,
+                                min: MIN_PUNTOS
+                            });
+                            setShowNoPointsModal(true);
+                        }
+                        return;
+                    }
+
+                    // 🟢 SI VIENE DE PAGAR
+                    if (puntos >= MIN_PUNTOS) {
+                        // 👉 mostrar canje OPCIONAL
                         setShowPointsModal(true);
                     } else {
+                        // 👉 ir directo a pagar
                         setShowPaymentModal(true);
                     }
                 }}
+
+
+
+
                 onSkip={() => {
                     console.log('Cliente saltó el registro');
                     setClienteActual(null);
@@ -381,21 +427,102 @@ const POSScreen = ({ productos, categorias, extras }) => {
                 }}
             />
 
-            <PointsRedemptionModal
-                visible={showPointsModal}
-                cliente={clienteActual}
-                productos={productos}
-                onRedeem={handleRedeemPoints}
-                onSkip={() => {
-                    setShowPointsModal(false);
-                    setShowPaymentModal(true);
-                }}
-                onClose={() => {
-                    setShowPointsModal(false);
-                    setShowPaymentModal(true);
-                }}
-            />
+            {modoCanje && (
+                <PointsRedemptionModal
+                    visible={showPointsModal}
+                    cliente={clienteActual}
+                    productos={productos}
+                    onRedeem={handleRedeemPoints}
+                    onSkip={() => {
+                        setShowPointsModal(false);
+                        setShowPaymentModal(true);
+                        setModoCanje(false);
+                    }}
+                    onClose={() => {
+                        setShowPointsModal(false);
+                        setModoCanje(false);
+                    }}
+                />
+            )}
+
+            <Modal
+                visible={showNoPointsModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowNoPointsModal(false)}
+            >
+                <View style={styles.overlay}>
+                    <View style={styles.proModal}>
+
+                        {/* Icono */}
+                        <View style={styles.proIconWrapper}>
+                            <Ionicons name="warning-outline" size={46} color="#f97316" />
+                        </View>
+
+                        {/* Título */}
+                        <Text style={styles.proTitle}>
+                            Canje no disponible
+                        </Text>
+
+                        {/* Info */}
+                        {noPointsInfo && (
+                            <View style={styles.proInfoBox}>
+                                <Text style={styles.proText}>
+                                    Cliente: <Text style={styles.bold}>{noPointsInfo.nombre}</Text>
+                                </Text>
+
+                                <View style={styles.pointsRow}>
+                                    <View style={styles.pointsChip}>
+                                        <Ionicons name="star" size={16} color="#f59e0b" />
+                                        <Text style={styles.pointsChipText}>
+                                            {noPointsInfo.puntos} puntos
+                                        </Text>
+                                    </View>
+
+                                    <Text style={styles.proArrow}>→</Text>
+
+                                    <View style={[styles.pointsChip, styles.pointsChipNeeded]}>
+                                        <Ionicons name="star" size={16} color="#ef4444" />
+                                        <Text style={styles.pointsChipText}>
+                                            {noPointsInfo.min} necesarios
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                <Text style={styles.proSubText}>
+                                    Le faltan <Text style={styles.bold}>{noPointsInfo.faltan}</Text> puntos para poder canjear.
+                                </Text>
+                            </View>
+                        )}
+
+                        {/* Acciones */}
+                        <View style={styles.proActions}>
+                            <TouchableOpacity
+                                style={styles.secondaryBtn}
+                                onPress={() => setShowNoPointsModal(false)}
+                            >
+                                <Text style={styles.secondaryBtnText}>Cerrar</Text>
+                            </TouchableOpacity>
+
+                            {/* <TouchableOpacity
+                                style={styles.primaryBtn}
+                                onPress={() => {
+                                    setShowNoPointsModal(false);
+                                    setShowPaymentModal(true);
+                                }}
+                            >
+                                <Ionicons name="card-outline" size={20} color="#fff" />
+                                <Text style={styles.primaryBtnText}>Continuar a pago</Text>
+                            </TouchableOpacity>
+                            */}
+                        </View>
+
+                    </View>
+                </View>
+            </Modal>
+
         </View>
+
     );
 };
 
@@ -683,6 +810,111 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#6b7280',
     },
+    proModal: {
+        backgroundColor: '#fff',
+        borderRadius: 24,
+        padding: 24,
+        width: 420,
+    },
+    proIconWrapper: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#fff7ed',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'center',
+        marginBottom: 16,
+    },
+    proTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#1f2937',
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+    proInfoBox: {
+        backgroundColor: '#f9fafb',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 20,
+    },
+    proText: {
+        fontSize: 14,
+        color: '#374151',
+        marginBottom: 8,
+    },
+    bold: {
+        fontWeight: 'bold',
+    },
+    pointsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        marginVertical: 12,
+    },
+    pointsChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: '#fef3c7',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    pointsChipNeeded: {
+        backgroundColor: '#fee2e2',
+    },
+    pointsChipText: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: '#374151',
+    },
+    proArrow: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#6b7280',
+    },
+    proSubText: {
+        fontSize: 13,
+        color: '#6b7280',
+        textAlign: 'center',
+    },
+    proActions: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    secondaryBtn: {
+        flex: 1,
+        borderWidth: 2,
+        borderColor: '#e5e7eb',
+        borderRadius: 12,
+        paddingVertical: 14,
+        alignItems: 'center',
+    },
+    secondaryBtnText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#6b7280',
+    },
+    primaryBtn: {
+        flex: 1.2,
+        backgroundColor: '#22c55e',
+        borderRadius: 12,
+        paddingVertical: 14,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
+    },
+    primaryBtnText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: 'bold',
+    },
+
+
 });
 
 export default POSScreen;
