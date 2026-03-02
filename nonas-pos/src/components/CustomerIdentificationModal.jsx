@@ -11,7 +11,7 @@ const CustomerIdentificationModal = ({ visible, onClose, onCustomerIdentified, o
     const [searching, setSearching] = useState(false);
     const [registering, setRegistering] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const API_URL = 'http://backend-production-fdd8.up.railway.app/api';
+    const API_URL = 'https://backend-production-fdd8.up.railway.app/api';
 
     // Datos de registro
     const [registerData, setRegisterData] = useState({
