@@ -14,8 +14,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Middleware CORS más permisivo para desarrollo
+app.use(cors({
+  origin: '*', // Permite todos los orígenes en desarrollo
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -73,20 +78,21 @@ async function startServer() {
   try {
     // Probar conexión a la base de datos
     const connected = await testConnection();
-    
+
     if (!connected) {
-      console.error('❌ No se pudo conectar a la base de datos. Verifica tu configuración en .env');
+      console.error(' No se pudo conectar a la base de datos. Verifica tu configuración en DATOSB.js');
       process.exit(1);
     }
-    
-    // Iniciar servidor
-    app.listen(PORT, () => {
-      console.log(`\n🚀 Servidor corriendo en puerto ${PORT}`);
-      console.log(`📍 API disponible en: http://localhost:${PORT}`);
-      console.log(`📖 Documentación: http://localhost:${PORT}/\n`);
+
+    // Iniciar servidor en todas las interfaces (0.0.0.0)
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`\n Servidor corriendo en puerto ${PORT}`);
+      console.log(` API disponible en: http://localhost:${PORT}`);
+      console.log(` Desde tu red: http://TU_IP:${PORT}`);
+      console.log(` Documentación: http://localhost:${PORT}/\n`);
     });
   } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
+    console.error(' Error al iniciar el servidor:', error);
     process.exit(1);
   }
 }

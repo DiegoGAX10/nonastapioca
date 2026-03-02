@@ -1,4 +1,4 @@
-const API_URL = 'http://192.168.0.103:3000/api';
+const API_URL = 'http://backend-production-fdd8.up.railway.app/api';
 
 // Helper para manejar respuestas
 const handleResponse = async (response) => {

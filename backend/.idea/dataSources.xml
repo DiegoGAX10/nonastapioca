@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:mysql://mysql-1067942d-dieegoortiz24-f2d8.k.aivencloud.com:13837/defaultdb</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="Tuleto@79.143.89.198" uuid="964c5fed-d1f7-4feb-804f-bf122c355460">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://79.143.89.198:3306/Tuleto</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

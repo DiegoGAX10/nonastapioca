@@ -41,3 +41,5 @@ yarn-error.*
 /android
 
 ../backend/.env
+
+../nonas-pos/src/components/PaymentModal.jsx

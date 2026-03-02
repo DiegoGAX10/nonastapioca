@@ -8,15 +8,29 @@ export const formatCurrency = (amount) => {
 // Obtener icono por categoría
 export const getCategoryIcon = (categoryName) => {
     const icons = {
-        'Boba': '',
-        'Milk Boba': '',
-        'Shakes': '',
-        'Sodas': '',
-        'Snacks': '',
-        'Postres': '',
-        'Café y Té': ''
+        'Boba':       '🧋',
+        'Milk Boba':  '🧋',
+        'Shakes':     '🥤',
+        'Sodas':      '🥤',
+        'Snacks':     '🍿',
+        'Postres':    '🧇',
+        'Café y Té':  '☕'
     };
-    return icons[categoryName] || '';
+    return icons[categoryName] || '🍽️';
+};
+
+// Obtener emoji placeholder por categoría (para tarjetas sin imagen)
+export const getCategoryEmoji = (categoria) => {
+    const emojis = {
+        'Boba':       '🧋',
+        'Milk Boba':  '🧋',
+        'Shakes':     '🥤',
+        'Sodas':      '🥤',
+        'Snacks':     '🍿',
+        'Postres':    '🧇',
+        'Café y Té':  '☕'
+    };
+    return emojis[categoria] || '🍽️';
 };
 
 // Generar UUID simple (para clientes)
@@ -49,31 +63,24 @@ export const calculateCartTotal = (cartItems) => {
     return cartItems.reduce((sum, item) => sum + item.subtotal, 0);
 };
 
-// Extraer categorías únicas de productos - CORREGIDO
+// Extraer categorías únicas de productos
 export const extractCategories = (productos) => {
-    // Usar un objeto para evitar duplicados basado en el nombre de la categoría
     const categoriesMap = {};
 
     productos.forEach(producto => {
-        // Usar el nombre de la categoría como key para evitar duplicados
         const categoryName = producto.categoria;
-
         if (!categoriesMap[categoryName]) {
             categoriesMap[categoryName] = {
-                id: producto.categoria_id || categoryName, // Fallback al nombre si no hay ID
+                id: producto.categoria_id || categoryName,
                 nombre: categoryName,
                 icono: getCategoryIcon(categoryName)
             };
         }
     });
 
-    // Convertir objeto a array y ordenar
     const categories = Object.values(categoriesMap);
 
-    console.log('Categorías extraídas:', categories);
-
     return categories.sort((a, b) => {
-        // Intentar ordenar por ID si existe, sino alfabéticamente
         if (typeof a.id === 'number' && typeof b.id === 'number') {
             return a.id - b.id;
         }
@@ -86,17 +93,16 @@ export const validateSaleData = (cartItems) => {
     if (!cartItems || cartItems.length === 0) {
         return { valid: false, error: 'El carrito está vacío' };
     }
-
     return { valid: true };
 };
 
 // Obtener nombre del método de pago
 export const getPaymentMethodName = (method) => {
     const names = {
-        'efectivo': 'Efectivo',
-        'tarjeta': 'Tarjeta',
+        'efectivo':      'Efectivo',
+        'tarjeta':       'Tarjeta',
         'transferencia': 'Transferencia',
-        'wallet': 'Wallet Digital'
+        'wallet':        'Wallet Digital'
     };
     return names[method] || method;
 };
@@ -104,10 +110,10 @@ export const getPaymentMethodName = (method) => {
 // Obtener clase CSS por método de pago
 export const getPaymentMethodClass = (method) => {
     const classes = {
-        'efectivo': 'bg-green-100 text-green-800',
-        'tarjeta': 'bg-blue-100 text-blue-800',
+        'efectivo':      'bg-green-100 text-green-800',
+        'tarjeta':       'bg-blue-100 text-blue-800',
         'transferencia': 'bg-purple-100 text-purple-800',
-        'wallet': 'bg-pink-100 text-pink-800'
+        'wallet':        'bg-pink-100 text-pink-800'
     };
     return classes[method] || 'bg-gray-100 text-gray-800';
 };

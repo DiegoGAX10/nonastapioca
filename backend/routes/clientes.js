@@ -8,21 +8,34 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const { nombre, telefono, email } = req.body;
-    
+
     // Validaciones
     if (!nombre) {
       return res.status(400).json({ error: 'El nombre es requerido' });
     }
-    
+
+    // Verificar si el teléfono ya existe
+    const [existente] = await pool.query(
+        'SELECT id FROM clientes WHERE telefono = ?',
+        [telefono]
+    );
+
+    if (existente.length > 0) {
+      return res.status(409).json({
+        error: 'Este número de teléfono ya está registrado',
+        cliente_id: existente[0].id
+      });
+    }
+
     // Generar UUID único para el QR
     const uuid = uuidv4();
-    
+
     const [result] = await pool.query(
       `INSERT INTO clientes (uuid, nombre, telefono, email)
        VALUES (?, ?, ?, ?)`,
       [uuid, nombre, telefono || null, email || null]
     );
-    
+
     res.status(201).json({
       success: true,
       cliente_id: result.insertId,
@@ -32,12 +45,12 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error al registrar cliente:', error);
-    
+
     // Verificar si es error de duplicado
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'El cliente ya existe' });
     }
-    
+
     res.status(500).json({ error: 'Error al registrar cliente' });
   }
 });
@@ -252,5 +265,61 @@ router.get('/top/compradores', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener top clientes' });
   }
 });
+
+// Canjear puntos del cliente
+router.post('/:id/canjear-puntos', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { puntos_a_descontar } = req.body;
+
+    if (!puntos_a_descontar || puntos_a_descontar <= 0) {
+      return res.status(400).json({ error: 'Puntos inválidos' });
+    }
+
+    // Verificar que el cliente tenga suficientes puntos
+    const [clientes] = await pool.query(
+        'SELECT puntos FROM clientes WHERE id = ? AND activo = TRUE',
+        [id]
+    );
+
+    if (clientes.length === 0) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    const puntosActuales = clientes[0].puntos;
+
+    if (puntosActuales < puntos_a_descontar) {
+      return res.status(400).json({
+        error: 'Puntos insuficientes',
+        puntos_actuales: puntosActuales,
+        puntos_requeridos: puntos_a_descontar
+      });
+    }
+
+    // Descontar puntos
+    const [result] = await pool.query(
+        'UPDATE clientes SET puntos = puntos - ? WHERE id = ?',
+        [puntos_a_descontar, id]
+    );
+
+    // Obtener puntos actualizados
+    const [clienteActualizado] = await pool.query(
+        'SELECT puntos FROM clientes WHERE id = ?',
+        [id]
+    );
+
+    res.json({
+      success: true,
+      message: `${puntos_a_descontar} puntos canjeados exitosamente`,
+      puntos_descontados: puntos_a_descontar,
+      puntos_restantes: clienteActualizado[0].puntos
+    });
+
+  } catch (error) {
+    console.error('Error al canjear puntos:', error);
+    res.status(500).json({ error: 'Error al canjear puntos' });
+  }
+});
+
 
 export default router;

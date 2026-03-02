@@ -22,11 +22,11 @@ export const pool = mysql.createPool({
 export async function testConnection() {
   try {
     const connection = await pool.getConnection();
-    console.log('✅ Conexión a MySQL (Aiven) exitosa');
+    console.log(' Conexión a MySQL (Aiven) exitosa');
     connection.release();
     return true;
   } catch (error) {
-    console.error('❌ Error al conectar con MySQL:', error.message);
+    console.error(' Error al conectar con MySQL:', error.message);
     return false;
   }
 }
