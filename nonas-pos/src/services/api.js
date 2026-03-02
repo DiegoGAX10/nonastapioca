@@ -1,4 +1,4 @@
-const API_URL = 'http://backend-production-fdd8.up.railway.app/api';
+const API_URL = 'https://backend-production-fdd8.up.railway.app/api';
 
 // Helper para manejar respuestas
 const handleResponse = async (response) => {
